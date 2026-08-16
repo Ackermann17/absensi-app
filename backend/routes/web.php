@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
 
 Route::view('/', 'welcome');
 
@@ -13,7 +14,7 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 // Employee list page
-Route::view('employees', 'pages.employees.index')
+Volt::route('employees', 'employees.index')
     ->middleware(['auth', 'verified'])
     ->name('employees.index');
 
