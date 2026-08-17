@@ -18,4 +18,8 @@ Volt::route('employees', 'employees.index')
     ->middleware(['auth', 'verified'])
     ->name('employees.index');
 
+// Terminal Absensi page
+Volt::route('/terminal-absen', 'attendance.terminal')
+    ->name('attendance.terminal');
+
 require __DIR__.'/auth.php';
