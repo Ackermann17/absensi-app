@@ -4,6 +4,7 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Employee;
 use App\Models\Attendance;
+use App\Jobs\SendWhatsAppNotification; // Tambahkan import Job ini
 use Carbon\Carbon;
 
 new #[Layout('layouts.guest')] class extends Component {
@@ -45,7 +46,8 @@ new #[Layout('layouts.guest')] class extends Component {
             $this->message = "Berhasil Check-In: {$employee->employee_code} pada {$currentTime}";
             $this->messageType = 'success';
             
-            // TODO: Tempatkan logika Laravel Job (Kirim WA via API) di sini
+            // Dispatch Job (Kirim WA via API) ke Background
+            SendWhatsAppNotification::dispatch($attendance, 'check_in');
             
         } elseif (is_null($attendance->check_out)) {
             // Logika Check-Out
@@ -55,7 +57,8 @@ new #[Layout('layouts.guest')] class extends Component {
             $this->message = "Berhasil Check-Out: {$employee->employee_code} pada {$currentTime}";
             $this->messageType = 'success';
             
-            // TODO: Tempatkan logika Laravel Job (Kirim WA via API) di sini
+            // Dispatch Job (Kirim WA via API) ke Background
+            SendWhatsAppNotification::dispatch($attendance, 'check_out');
             
         } else {
             // Sudah absen masuk & keluar
