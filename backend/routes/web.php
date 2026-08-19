@@ -5,7 +5,8 @@ use Livewire\Volt\Volt;
 
 Route::view('/', 'welcome');
 
-Route::view('dashboard', 'dashboard')
+// Mengubah route dashboard bawaan untuk menggunakan komponen Volt buatan kita
+Volt::route('dashboard', 'admin.dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 

@@ -9,7 +9,14 @@ class Attendance extends Model
 {
     use HasFactory;
 
-    protected $guarded = []; // Mengizinkan semua kolom untuk diisi
+    protected $fillable = [
+        'employee_id', 
+        'date',
+        'check_in',
+        'check_out',
+        'status', 
+        'late_duration'
+    ];
 
     // Tambahkan relasi ini agar Job bisa memanggil $this->attendance->employee
     public function employee()

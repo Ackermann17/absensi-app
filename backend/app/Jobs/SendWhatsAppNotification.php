@@ -47,7 +47,7 @@ class SendWhatsAppNotification implements ShouldQueue
         $time = $this->type === 'check_in' ? $this->attendance->check_in : $this->attendance->check_out;
         $statusText = $this->type === 'check_in' ? 'Tiba di sekolah' : 'Pulang dari sekolah';
         
-        // Mengambil nama dari tabel users (Sudah diperbaiki)
+        // Mengambil nama dari tabel users
         $studentName = $student->user->name ?? 'Murid'; 
         
         // Mengambil kelas dari kolom position di tabel employees
@@ -55,6 +55,13 @@ class SendWhatsAppNotification implements ShouldQueue
         
         // Gabungkan Nama dan Kelas di dalam format tebal (bold) WhatsApp
         $message = "Halo Bapak/Ibu, ananda *{$studentName} ({$studentClass})* telah {$statusText} pada pukul {$time} WIT.";
+
+        // --- TAMBAHAN LOGIKA KETERLAMBATAN ---
+        // Cek apakah ini absen masuk DAN statusnya terlambat
+        if ($this->type === 'check_in' && $this->attendance->status === 'late') {
+            $message .= "\n\n⚠️ *Catatan:* Ananda tercatat datang *terlambat {$this->attendance->late_duration} menit* dari jam masuk standar.";
+        }
+        // -------------------------------------
 
         // 3. Kirim via API (Menggunakan ->withoutVerifying() untuk bypass SSL Localhost)
         try {

@@ -4,13 +4,13 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Employee;
 use App\Models\Attendance;
-use App\Jobs\SendWhatsAppNotification; // Tambahkan import Job ini
+use App\Jobs\SendWhatsAppNotification;
 use Carbon\Carbon;
 
 new #[Layout('layouts.guest')] class extends Component {
     public $employee_code = '';
     public $message = '';
-    public $messageType = 'success'; // Menentukan warna alert: 'success' atau 'error'
+    public $messageType = 'success';
 
     public function processAttendance()
     {
@@ -18,7 +18,6 @@ new #[Layout('layouts.guest')] class extends Component {
             'employee_code' => 'required'
         ]);
 
-        // Cari data pegawai (bisa disesuaikan jadi murid nanti)
         $employee = Employee::where('employee_code', $this->employee_code)->first();
 
         if (!$employee) {
@@ -28,36 +27,54 @@ new #[Layout('layouts.guest')] class extends Component {
             return;
         }
 
-        $today = Carbon::today()->toDateString();
-        $currentTime = Carbon::now()->toTimeString();
+        // Simpan instance $now agar waktu yang digunakan persis sama
+        $now = Carbon::now();
+        $today = $now->toDateString();
+        $currentTime = $now->toTimeString();
 
-        // Cari data absensi hari ini, kalau belum ada, buat baru
         $attendance = Attendance::firstOrNew([
             'employee_id' => $employee->id,
             'date' => $today,
         ]);
 
         if (!$attendance->exists) {
-            // Logika Check-In
+            // --- LOGIKA CHECK-IN & KETERLAMBATAN ---
             $attendance->check_in = $currentTime;
-            $attendance->status = 'present';
+            
+            // Tentukan batas jam masuk, misalnya jam 08:00:00
+            $batasMasuk = Carbon::today()->setTime(8, 0, 0);
+
+            if ($now->greaterThan($batasMasuk)) {
+                $attendance->status = 'late';
+                // Hitung selisih menit keterlambatan (dibulatkan menjadi bilangan bulat)
+                $attendance->late_duration = (int) $batasMasuk->diffInMinutes($now);
+            } else {
+                $attendance->status = 'on_time';
+                $attendance->late_duration = null;
+            }
+            
             $attendance->save();
             
+            // Sesuaikan pesan UI berdasarkan status
             $this->message = "Berhasil Check-In: {$employee->employee_code} pada {$currentTime}";
-            $this->messageType = 'success';
+            if ($attendance->status === 'late') {
+                $this->message .= " (Terlambat {$attendance->late_duration} menit)";
+                // Opsional: Ubah warna alert jadi error/kuning jika telat
+                $this->messageType = 'error'; 
+            } else {
+                $this->messageType = 'success';
+            }
             
-            // Dispatch Job (Kirim WA via API) ke Background
             SendWhatsAppNotification::dispatch($attendance, 'check_in');
             
         } elseif (is_null($attendance->check_out)) {
-            // Logika Check-Out
+            // --- LOGIKA CHECK-OUT ---
             $attendance->check_out = $currentTime;
             $attendance->save();
             
             $this->message = "Berhasil Check-Out: {$employee->employee_code} pada {$currentTime}";
             $this->messageType = 'success';
             
-            // Dispatch Job (Kirim WA via API) ke Background
             SendWhatsAppNotification::dispatch($attendance, 'check_out');
             
         } else {
@@ -66,11 +83,9 @@ new #[Layout('layouts.guest')] class extends Component {
             $this->messageType = 'error';
         }
 
-        // Reset kolom input agar siap di-scan murid selanjutnya
         $this->employee_code = '';
     }
 }; ?>
-
 <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl text-center border border-gray-100">
         <h2 class="text-3xl font-extrabold mb-2 text-gray-800">Terminal Absensi</h2>
