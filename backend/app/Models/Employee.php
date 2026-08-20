@@ -24,4 +24,9 @@ class Employee extends Model
     {
         return $this->belongsTo(User::class);
     }
+    // Di dalam model Employee
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class);
+    }
 }

@@ -7,42 +7,50 @@ use function Livewire\Volt\{computed, layout};
 
 layout('layouts.app');
 
-// Mengambil total seluruh karyawan
+// 1. Mengambil total seluruh karyawan
 $totalEmployees = computed(fn () => Employee::count());
 
-// Mengambil jumlah yang sudah absen hari ini
+// 2. Mengambil jumlah yang HADIR (on_time / late) hari ini
 $presentToday = computed(fn () => 
-    Attendance::whereDate('created_at', Carbon::today())->count()
+    Attendance::where('date', Carbon::today()->toDateString())
+        ->whereIn('status', ['on_time', 'late'])
+        ->count()
 );
 
-// PERBAIKAN: Gunakan 'function ()' biasa, bukan arrow function 'fn () =>'
-$absentToday = computed(function () {
-    return $this->totalEmployees - $this->presentToday;
-});
-
-// Mengambil 10 data absen terakhir hari ini
-$recentAttendances = computed(fn () => 
-    Attendance::with(['employee.user'])
-        ->whereDate('created_at', Carbon::today())
-        ->latest()
-        ->take(10)
-        ->get()
+// 3. Mengambil jumlah yang IZIN / SAKIT hari ini
+$izinSakitToday = computed(fn () => 
+    Attendance::where('date', Carbon::today()->toDateString())
+        ->whereIn('status', ['izin', 'sakit'])
+        ->count()
 );
+
+// 4. Mengambil jumlah TERLAMBAT hari ini
 $lateToday = computed(fn () => 
-    Attendance::whereDate('created_at', Carbon::today())
+    Attendance::where('date', Carbon::today()->toDateString())
         ->where('status', 'late')
         ->count()
 );
 
+// 5. LOGIKA BARU "BELUM ABSEN": Total Karyawan - (Hadir + Izin/Sakit)
+$absentToday = computed(function () {
+    return $this->totalEmployees - ($this->presentToday + $this->izinSakitToday);
+});
 
-// ... sisa kode Anda di bawahnya tetap sama ...
+// 6. Mengambil 10 data absen terakhir hari ini
+$recentAttendances = computed(fn () => 
+    Attendance::with(['employee.user'])
+        ->where('date', Carbon::today()->toDateString())
+        ->latest('updated_at') // Urutkan dari yang terbaru diupdate (termasuk yang baru di-approve)
+        ->take(10)
+        ->get()
+);
+
 ?>
-
 <div wire:poll.10s class="p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard Kehadiran Hari Ini</h2>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <!-- Summary Cards (Diubah jadi grid-cols-5 agar muat 5 kotak) -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         <!-- Card Total -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
             <h3 class="text-gray-500 text-sm font-medium">Total Karyawan/Siswa</h3>
@@ -55,11 +63,18 @@ $lateToday = computed(fn () =>
             <p class="text-3xl font-bold text-green-600 mt-2">{{ $this->presentToday }}</p>
         </div>
 
+        <!-- CARD BARU: Izin / Sakit -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
+            <h3 class="text-gray-500 text-sm font-medium">Izin / Sakit</h3>
+            <p class="text-3xl font-bold text-blue-600 mt-2">{{ $this->izinSakitToday }}</p>
+        </div>
+
         <!-- Card Belum Absen -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-red-500">
             <h3 class="text-gray-500 text-sm font-medium">Belum Absen</h3>
             <p class="text-3xl font-bold text-red-600 mt-2">{{ $this->absentToday }}</p>
         </div>
+        
         <!-- Card Terlambat -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
             <h3 class="text-gray-500 text-sm font-medium">Terlambat</h3>
@@ -99,9 +114,18 @@ $lateToday = computed(fn () =>
                             {{ $attendance->employee->position ?? '-' }}
                         </td>
                         <td class="px-6 py-4 text-sm border-b">
-                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                                Hadir
-                            </span>
+                            <!-- PERBAIKAN: Status Dinamis -->
+                            @if($attendance->status === 'on_time')
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Tepat Waktu</span>
+                            @elseif($attendance->status === 'late')
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Terlambat</span>
+                            @elseif($attendance->status === 'sakit')
+                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Sakit</span>
+                            @elseif($attendance->status === 'izin')
+                                <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">Izin</span>
+                            @else
+                                <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">{{ ucfirst($attendance->status) }}</span>
+                            @endif
                         </td>
                     </tr>
                 @empty

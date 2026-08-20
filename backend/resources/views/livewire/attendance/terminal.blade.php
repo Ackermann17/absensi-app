@@ -36,6 +36,12 @@ new #[Layout('layouts.guest')] class extends Component {
             'employee_id' => $employee->id,
             'date' => $today,
         ]);
+        if ($attendance->exists && in_array($attendance->status, ['sakit', 'izin'])) {
+            $this->message = "Anda tercatat sedang " . ucfirst($attendance->status) . " hari ini.";
+            $this->messageType = 'error';
+            $this->employee_code = '';
+            return;
+        }
 
         if (!$attendance->exists) {
             // --- LOGIKA CHECK-IN & KETERLAMBATAN ---

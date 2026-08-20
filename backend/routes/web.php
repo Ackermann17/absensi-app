@@ -23,4 +23,10 @@ Volt::route('employees', 'employees.index')
 Volt::route('/terminal-absen', 'attendance.terminal')
     ->name('attendance.terminal');
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Route lainnya...
+    Volt::route('/leaves/approval', 'leaves.approval')->name('leaves.approval');
+    Volt::route('/leaves/create', 'leaves.create')->name('leaves.create');
+});
+
 require __DIR__.'/auth.php';

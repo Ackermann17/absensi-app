@@ -34,8 +34,6 @@ class SendWhatsAppNotification implements ShouldQueue
     {
         // 1. Ambil relasi murid/karyawan
         $student = $this->attendance->employee; 
-        
-        // Gunakan kolom phone sesuai tabel Anda
         $targetNumber = $student->phone; 
 
         if (!$targetNumber) {
@@ -43,34 +41,35 @@ class SendWhatsAppNotification implements ShouldQueue
             return;
         }
 
-        // 2. Susun Pesan
-        $time = $this->type === 'check_in' ? $this->attendance->check_in : $this->attendance->check_out;
-        $statusText = $this->type === 'check_in' ? 'Tiba di sekolah' : 'Pulang dari sekolah';
-        
-        // Mengambil nama dari tabel users
+        // Mengambil nama dan kelas
         $studentName = $student->user->name ?? 'Murid'; 
-        
-        // Mengambil kelas dari kolom position di tabel employees
         $studentClass = $student->position ?? 'Kelas tidak diketahui'; 
         
-        // Gabungkan Nama dan Kelas di dalam format tebal (bold) WhatsApp
-        $message = "Halo Bapak/Ibu, ananda *{$studentName} ({$studentClass})* telah {$statusText} pada pukul {$time} WIT.";
-
-        // --- TAMBAHAN LOGIKA KETERLAMBATAN ---
-        // Cek apakah ini absen masuk DAN statusnya terlambat
-        if ($this->type === 'check_in' && $this->attendance->status === 'late') {
-            $message .= "\n\n⚠️ *Catatan:* Ananda tercatat datang *terlambat {$this->attendance->late_duration} menit* dari jam masuk standar.";
+        // 2. Susun Pesan Berdasarkan Tipe
+        if ($this->type === 'check_in') {
+            $message = "Halo Bapak/Ibu, ananda *{$studentName} ({$studentClass})* telah *Tiba di sekolah* pada pukul {$this->attendance->check_in} WIT.";
+            
+            if ($this->attendance->status === 'late') {
+                $message .= "\n\n⚠️ *Catatan:* Ananda tercatat datang *terlambat {$this->attendance->late_duration} menit* dari jam masuk standar.";
+            }
+        } elseif ($this->type === 'check_out') {
+            $message = "Halo Bapak/Ibu, ananda *{$studentName} ({$studentClass})* telah *Pulang dari sekolah* pada pukul {$this->attendance->check_out} WIT.";
+        } elseif ($this->type === 'sakit') {
+            $message = "Halo Bapak/Ibu, ini adalah pemberitahuan dari sekolah bahwa pengajuan izin untuk ananda *{$studentName} ({$studentClass})* telah disetujui dengan status *SAKIT* pada tanggal {$this->attendance->date}. Semoga lekas sembuh.";
+        } elseif ($this->type === 'izin') {
+            $message = "Halo Bapak/Ibu, pengajuan izin untuk ananda *{$studentName} ({$studentClass})* pada tanggal {$this->attendance->date} telah *DISETUJUI* oleh pihak sekolah.";
+        } else {
+            return; // Jika tipenya tidak dikenal, hentikan proses
         }
-        // -------------------------------------
 
-        // 3. Kirim via API (Menggunakan ->withoutVerifying() untuk bypass SSL Localhost)
+        // 3. Kirim via API Fonnte
         try {
             $response = Http::withoutVerifying()->withHeaders([
                 'Authorization' => env('FONNTE_TOKEN'),
             ])->post('https://api.fonnte.com/send', [
                 'target' => $targetNumber,
                 'message' => $message,
-                'countryCode' => '62', // Default Indonesia
+                'countryCode' => '62',
             ]);
 
             if (!$response->successful()) {
