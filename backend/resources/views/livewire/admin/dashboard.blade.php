@@ -3,10 +3,16 @@
 use App\Models\Employee;
 use App\Models\Attendance;
 use Carbon\Carbon;
-use function Livewire\Volt\{computed, layout};
+use Maatwebsite\Excel\Facades\Excel; // Tambahkan ini
+use App\Exports\AttendanceExport;    // Tambahkan ini
+use function Livewire\Volt\{computed, layout, action, state};
 
 layout('layouts.app');
-
+state([
+    'filterMonth' => '',
+    'filterDate' => '',
+    'filterStatus' => ''
+]);
 // 1. Mengambil total seluruh karyawan
 $totalEmployees = computed(fn () => Employee::count());
 
@@ -30,7 +36,15 @@ $lateToday = computed(fn () =>
         ->where('status', 'late')
         ->count()
 );
-
+$exportExcel = action(function () {
+    $fileName = 'Laporan_Absensi_' . date('Ymd_His') . '.xlsx';
+    
+    // Kirim data state ke constructor AttendanceExport
+    return Excel::download(
+        new AttendanceExport($this->filterMonth, $this->filterDate, $this->filterStatus), 
+        $fileName
+    );
+});
 // 5. LOGIKA BARU "BELUM ABSEN": Total Karyawan - (Hadir + Izin/Sakit)
 $absentToday = computed(function () {
     return $this->totalEmployees - ($this->presentToday + $this->izinSakitToday);
@@ -44,6 +58,7 @@ $recentAttendances = computed(fn () =>
         ->take(10)
         ->get()
 );
+
 
 ?>
 <div wire:poll.10s class="p-6">
@@ -137,5 +152,47 @@ $recentAttendances = computed(fn () =>
                 @endforelse
             </tbody>
         </table>
+    </div>
+    <!-- Tombol Export -->
+    <!-- Form Filter & Export -->
+    <div class="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-600 mb-3">Filter Export Laporan</h3>
+        
+        <div class="flex flex-col md:flex-row gap-4 items-end">
+            <!-- Filter Bulan -->
+            <div class="w-full md:w-1/4">
+                <label class="block text-xs text-gray-500 mb-1 flex justify-between items-center">
+                    <span>Bulan</span>
+                    <span class="text-[9px] text-gray-400 italic">*Abaikan jika pilih tanggal</span>
+                </label>
+                <input type="month" wire:model="filterMonth" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Pilih Bulan">
+            </div>
+
+            <!-- Filter Tanggal -->
+            <div class="w-full md:w-1/4">
+                <label class="block text-xs text-gray-500 mb-1">Tanggal Spesifik (Opsional)</label>
+                <input type="date" wire:model="filterDate" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+
+            <!-- Filter Status -->
+            <div class="w-full md:w-1/4">
+                <label class="block text-xs text-gray-500 mb-1">Status</label>
+                <select wire:model="filterStatus" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Semua Status</option>
+                    <option value="on_time">Hadir (Tepat Waktu)</option>
+                    <option value="late">Terlambat</option>
+                    <option value="sakit">Sakit</option>
+                    <option value="izin">Izin</option>
+                </select>
+            </div>
+
+            <!-- Tombol Export -->
+            <div class="w-full md:w-1/4 pb-1">
+                <button wire:click="exportExcel" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-150 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Unduh Excel
+                </button>
+            </div>
+        </div>
     </div>
 </div>
