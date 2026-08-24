@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::view('/', 'welcome');
@@ -27,6 +26,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route lainnya...
     Volt::route('/leaves/approval', 'leaves.approval')->name('leaves.approval');
     Volt::route('/leaves/create', 'leaves.create')->name('leaves.create');
+    Route::post('/logout', function () {
+    Auth::guard('web')->logout();
+    
+    // Menggunakan helper request() langsung agar tidak bentrok
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    
+    return redirect('/');
+    })->name('logout');
 });
 
 require __DIR__.'/auth.php';

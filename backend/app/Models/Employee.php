@@ -13,6 +13,7 @@ class Employee extends Model
         'user_id',
         'employee_code',
         'phone',
+        'type',
         'position',
         'status',
     ];

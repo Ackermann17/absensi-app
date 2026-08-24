@@ -61,137 +61,122 @@ $recentAttendances = computed(fn () =>
 
 
 ?>
-<div wire:poll.10s class="p-6">
-    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard Kehadiran Hari Ini</h2>
+<div>
+    <!-- Header Standar Breeze (Membuat blok putih terpisah dengan jarak rapi) -->
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-slate-800 leading-tight">
+            {{ __('Dashboard Utama') }}
+        </h2>
+    </x-slot>
 
-    <!-- Summary Cards (Diubah jadi grid-cols-5 agar muat 5 kotak) -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-        <!-- Card Total -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h3 class="text-gray-500 text-sm font-medium">Total Karyawan/Siswa</h3>
-            <p class="text-3xl font-bold text-gray-800 mt-2">{{ $this->totalEmployees }}</p>
-        </div>
-
-        <!-- Card Hadir -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-green-500">
-            <h3 class="text-gray-500 text-sm font-medium">Hadir Hari Ini</h3>
-            <p class="text-3xl font-bold text-green-600 mt-2">{{ $this->presentToday }}</p>
-        </div>
-
-        <!-- CARD BARU: Izin / Sakit -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
-            <h3 class="text-gray-500 text-sm font-medium">Izin / Sakit</h3>
-            <p class="text-3xl font-bold text-blue-600 mt-2">{{ $this->izinSakitToday }}</p>
-        </div>
-
-        <!-- Card Belum Absen -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-red-500">
-            <h3 class="text-gray-500 text-sm font-medium">Belum Absen</h3>
-            <p class="text-3xl font-bold text-red-600 mt-2">{{ $this->absentToday }}</p>
-        </div>
+    <!-- Kontainer Utama dengan batas lebar (max-w-7xl) agar sejajar dengan navigasi -->
+    <div wire:poll.10s class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         
-        <!-- Card Terlambat -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
-            <h3 class="text-gray-500 text-sm font-medium">Terlambat</h3>
-            <p class="text-3xl font-bold text-yellow-600 mt-2">{{ $this->lateToday }}</p>
+        <!-- SECTION 1: Summary Cards Kehadiran -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Total Siswa</h3>
+                <p class="text-3xl font-bold text-slate-800 mt-2">{{ $this->totalEmployees }}</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-emerald-500">
+                <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Hadir Hari Ini</h3>
+                <p class="text-3xl font-bold text-emerald-600 mt-2">{{ $this->presentToday }}</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-blue-500">
+                <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Izin / Sakit</h3>
+                <p class="text-3xl font-bold text-blue-600 mt-2">{{ $this->izinSakitToday }}</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-rose-500">
+                <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Belum Absen</h3>
+                <p class="text-3xl font-bold text-rose-600 mt-2">{{ $this->absentToday }}</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-amber-500">
+                <h3 class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Terlambat</h3>
+                <p class="text-3xl font-bold text-amber-600 mt-2">{{ $this->lateToday }}</p>
+            </div>
         </div>
-    </div>
 
-    <!-- Table Recent Attendances -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800">Aktivitas Absensi Terbaru</h3>
-            <span class="text-xs text-gray-500 flex items-center">
-                <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-                Live Updates
-            </span>
+        <!-- SECTION 2: Filter & Export Excel -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 mb-8">
+            <div class="flex items-center gap-2 mb-4">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <h3 class="text-sm font-bold text-slate-700">Filter & Unduh Laporan</h3>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="w-full md:w-1/4">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Bulan</label>
+                    <input type="month" wire:model="filterMonth" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-slate-700">
+                </div>
+                <div class="w-full md:w-1/4">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Tanggal (Opsional)</label>
+                    <input type="date" wire:model="filterDate" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-slate-700">
+                </div>
+                <div class="w-full md:w-1/4">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Status Kehadiran</label>
+                    <select wire:model="filterStatus" class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-slate-700">
+                        <option value="">Semua Status</option>
+                        <option value="on_time">Hadir (Tepat Waktu)</option>
+                        <option value="late">Terlambat</option>
+                        <option value="sakit">Sakit</option>
+                        <option value="izin">Izin</option>
+                    </select>
+                </div>
+                <div class="w-full md:w-1/4">
+                    <button wire:click="exportExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors duration-200 h-[38px]">
+                        Unduh Excel
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr>
-                    <th class="px-6 py-3 text-sm font-medium text-gray-500 border-b">Waktu</th>
-                    <th class="px-6 py-3 text-sm font-medium text-gray-500 border-b">Nama</th>
-                    <th class="px-6 py-3 text-sm font-medium text-gray-500 border-b">Kelas/Posisi</th>
-                    <th class="px-6 py-3 text-sm font-medium text-gray-500 border-b">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($this->recentAttendances as $attendance)
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm text-gray-600 border-b">
-                            {{ $attendance->created_at->format('H:i:s') }}
-                        </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-800 border-b">
-                            {{ $attendance->employee->user->name ?? 'Unknown' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 border-b">
-                            {{ $attendance->employee->position ?? '-' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm border-b">
-                            <!-- PERBAIKAN: Status Dinamis -->
-                            @if($attendance->status === 'on_time')
-                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Tepat Waktu</span>
-                            @elseif($attendance->status === 'late')
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Terlambat</span>
-                            @elseif($attendance->status === 'sakit')
-                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Sakit</span>
-                            @elseif($attendance->status === 'izin')
-                                <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">Izin</span>
-                            @else
-                                <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">{{ ucfirst($attendance->status) }}</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                            Belum ada data absensi hari ini.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <!-- Tombol Export -->
-    <!-- Form Filter & Export -->
-    <div class="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-100">
-        <h3 class="text-sm font-semibold text-gray-600 mb-3">Filter Export Laporan</h3>
-        
-        <div class="flex flex-col md:flex-row gap-4 items-end">
-            <!-- Filter Bulan -->
-            <div class="w-full md:w-1/4">
-                <label class="block text-xs text-gray-500 mb-1 flex justify-between items-center">
-                    <span>Bulan</span>
-                    <span class="text-[9px] text-gray-400 italic">*Abaikan jika pilih tanggal</span>
-                </label>
-                <input type="month" wire:model="filterMonth" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Pilih Bulan">
-            </div>
 
-            <!-- Filter Tanggal -->
-            <div class="w-full md:w-1/4">
-                <label class="block text-xs text-gray-500 mb-1">Tanggal Spesifik (Opsional)</label>
-                <input type="date" wire:model="filterDate" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+        <!-- SECTION 3: Tabel Aktivitas Terbaru -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-800">Aktivitas Absensi Terbaru</h3>
+                <span class="text-xs font-medium text-emerald-600 flex items-center bg-emerald-50 px-2 py-1 rounded-full ring-1 ring-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                    Live Updates
+                </span>
             </div>
-
-            <!-- Filter Status -->
-            <div class="w-full md:w-1/4">
-                <label class="block text-xs text-gray-500 mb-1">Status</label>
-                <select wire:model="filterStatus" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <option value="">Semua Status</option>
-                    <option value="on_time">Hadir (Tepat Waktu)</option>
-                    <option value="late">Terlambat</option>
-                    <option value="sakit">Sakit</option>
-                    <option value="izin">Izin</option>
-                </select>
-            </div>
-
-            <!-- Tombol Export -->
-            <div class="w-full md:w-1/4 pb-1">
-                <button wire:click="exportExcel" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-150 flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Unduh Excel
-                </button>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-white">
+                            <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Waktu</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Nama</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Kelas/Posisi</th>
+                            <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($this->recentAttendances as $attendance)
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 text-sm font-medium text-slate-600">{{ $attendance->created_at->format('H:i:s') }}</td>
+                                <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ $attendance->employee->user->name ?? 'Unknown' }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-500">{{ $attendance->employee->position ?? '-' }}</td>
+                                <td class="px-6 py-4 text-sm">
+                                    @if($attendance->status === 'on_time')
+                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 rounded-full text-xs font-semibold">Tepat Waktu</span>
+                                    @elseif($attendance->status === 'late')
+                                        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 ring-1 ring-amber-600/20 rounded-full text-xs font-semibold">Terlambat</span>
+                                    @elseif($attendance->status === 'sakit')
+                                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 ring-1 ring-blue-600/20 rounded-full text-xs font-semibold">Sakit</span>
+                                    @elseif($attendance->status === 'izin')
+                                        <span class="px-2.5 py-1 bg-purple-50 text-purple-700 ring-1 ring-purple-600/20 rounded-full text-xs font-semibold">Izin</span>
+                                    @else
+                                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 ring-1 ring-slate-500/20 rounded-full text-xs font-semibold">{{ ucfirst($attendance->status) }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-12 text-center text-slate-500 text-sm">Belum ada data absensi yang terekam hari ini.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
