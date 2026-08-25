@@ -26,6 +26,14 @@ new #[Layout('layouts.guest')] class extends Component {
             $this->employee_code = '';
             return;
         }
+        if ($employee->status === 'inactive') {
+        // Memanggil nama dari tabel users lewat relasi
+        $nama = $employee->user?->name ?? $employee->employee_code;
+        $this->message = "Akses Ditolak: Akun {$nama} telah dinonaktifkan. Hubungi admin.";
+        $this->messageType = 'error';
+        $this->employee_code = '';
+        return;
+    }
 
         $now = Carbon::now();
         $today = $now->toDateString();
@@ -55,9 +63,11 @@ new #[Layout('layouts.guest')] class extends Component {
                 $attendance->late_duration = null;
             }
             
+            // ... kode sebelumnya ...
             $attendance->save();
-            
-            $this->message = "Berhasil Check-In: {$employee->employee_code} pada {$currentTime}";
+
+            $nama = $employee->user?->name ?? 'Pengguna';
+            $this->message = "Berhasil Check-In: {$nama} pada {$currentTime}";
             if ($attendance->status === 'late') {
                 $this->message .= " (Terlambat {$attendance->late_duration} menit)";
                 $this->messageType = 'error'; 
@@ -91,10 +101,12 @@ new #[Layout('layouts.guest')] class extends Component {
             }
 
             // Jika sudah lewat batas waktu, izinkan check-out
+            // ... kode sebelumnya ...
             $attendance->check_out = $currentTime;
             $attendance->save();
-            
-            $this->message = "Berhasil Check-Out: {$employee->employee_code} pada {$currentTime}";
+
+            $nama = $employee->user?->name ?? 'Pengguna';
+            $this->message = "Berhasil Check-Out: {$nama} pada {$currentTime}";
             $this->messageType = 'success';
             
             SendWhatsAppNotification::dispatch($attendance, 'check_out');
@@ -164,7 +176,8 @@ new #[Layout('layouts.guest')] class extends Component {
                 PROSES ABSEN MANUAL
             </button>
         </form>
-        <!-- Jam Digital (JavaScript Murni, tanpa beban server) -->
+        
+        <!-- Jam Digital -->
         <div class="mt-8 pt-6 border-t border-gray-100">
             <p class="text-sm text-gray-400 font-medium tracking-wider">WAKTU LOKAL</p>
             <div id="realtime-clock" class="text-xl font-bold text-gray-700 mt-1">
@@ -203,7 +216,7 @@ new #[Layout('layouts.guest')] class extends Component {
                 setTimeout(() => {
                     html5QrcodeScanner.resume();
                     isProcessing = false;
-                }, 4000); // Sinkronkan dengan animasi CSS (4 detik)
+                }, 4000); 
             }).catch(() => {
                 setTimeout(() => {
                     html5QrcodeScanner.resume();

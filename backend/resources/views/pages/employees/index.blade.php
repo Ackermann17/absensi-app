@@ -27,6 +27,16 @@ new #[Layout('layouts.app')] class extends Component
     public string $position = '';
     public string $status = 'active';
 
+    public function toggleStatus($id)
+    {
+        $employee = Employee::find($id);
+        if ($employee) {
+            // Membalikkan status: active jadi inactive, sebaliknya
+            $employee->status = $employee->status === 'active' ? 'inactive' : 'active';
+            $employee->save();
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -43,7 +53,7 @@ new #[Layout('layouts.app')] class extends Component
             'status' => ['required', 'in:active,inactive'],
         ];
     }
-
+    
     public function switchTab($tab): void
     {
         $this->activeTab = $tab;
@@ -200,13 +210,10 @@ new #[Layout('layouts.app')] class extends Component
     <!-- Subfolder / Pill Filters (Dinamis) -->
     @if(count($subFilters) > 0)
     <div class="mb-6 flex flex-wrap gap-2">
-        <!-- Tombol 'Semua' -->
         <button wire:click="setFilter('')"
                 class="px-4 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 {{ $activeFilter === '' ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
             Semua Data
         </button>
-        
-        <!-- Render otomatis dari Database -->
         @foreach($subFilters as $filter)
             <button wire:click="setFilter('{{ $filter }}')"
                     class="px-4 py-1.5 text-xs font-semibold rounded-full border transition-all duration-200 {{ $activeFilter === $filter ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}">
@@ -237,13 +244,21 @@ new #[Layout('layouts.app')] class extends Component
                             <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ $emp->user->name ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-slate-500">{{ $emp->position ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-slate-500">{{ $emp->phone ?? '-' }}</td>
+                            
+                            <!-- KOLOM STATUS YANG SUDAH MENJADI TOMBOL TOGGLE -->
                             <td class="px-6 py-4 text-sm">
-                                @if($emp->status === 'active')
-                                    <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 rounded-full text-xs font-semibold">Aktif</span>
-                                @else
-                                    <span class="px-2.5 py-1 bg-rose-50 text-rose-700 ring-1 ring-rose-600/20 rounded-full text-xs font-semibold">Non-Aktif</span>
-                                @endif
+                                <button 
+                                    wire:click="toggleStatus({{ $emp->id }})" 
+                                    class="px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200 focus:outline-none shadow-sm hover:shadow active:scale-95 cursor-pointer
+                                    {{ $emp->status === 'active' 
+                                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                                        : 'bg-rose-500 hover:bg-rose-600 text-white' }}"
+                                    title="Klik untuk mengubah status"
+                                >
+                                    {{ $emp->status === 'active' ? 'Aktif' : 'Non-Aktif' }}
+                                </button>
                             </td>
+
                             <td class="px-6 py-4 text-sm text-right space-x-3">
                                 <button wire:click="edit({{ $emp->id }})" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Edit</button>
                                 <button wire:click="delete({{ $emp->id }})" wire:confirm="Yakin ingin menghapus data ini?" class="text-red-600 hover:text-red-800 font-medium transition-colors">Hapus</button>
@@ -269,7 +284,7 @@ new #[Layout('layouts.app')] class extends Component
         </div>
     </div>
 
-    <!-- Modal Form Tambah/Edit (Tetap sama seperti sebelumnya) -->
+    <!-- Modal Form Tambah/Edit -->
     @if($isFormOpen)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
