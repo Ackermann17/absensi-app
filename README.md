@@ -41,7 +41,17 @@ Sebuah aplikasi Kiosk Absensi Digital berbasis web modern yang memungkinkan penc
 Catatan Pengujian Kamera di HP (Localhost):
 Jika menguji fitur scanner via IP lokal di perangkat mobile, aktifkan flags Insecure origins treated as secure pada Chrome (chrome://flags/#unsafely-treat-insecure-origin-as-secure) dan masukkan IP lokal server (contoh: http://192.168.1.x:8000) agar akses kamera tidak diblokir.
 
-🖼️ Tangkapan Layar (Screenshots)
+## 🖼️ Tangkapan Layar (Screenshots)
 
+**Tampilan Awal**
+![alt text](Dashboard.png)
+
+![alt text](ContohScan.png)
+
+![alt text](DashboardAdmin.png)
+
+![alt text](FormIzin.png)
+
+![alt text](TotalMurid.png)
 
 Proyek ini dikembangkan sebagai bagian dari sprint tantangan 15 Hari.
